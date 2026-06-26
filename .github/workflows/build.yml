@@ -14,16 +14,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-
       - name: Build Release APK
         run: |
           chmod +x gradlew
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleRelease --no-daemon -Pandroid.aapt2FromMavenOverride=false
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
