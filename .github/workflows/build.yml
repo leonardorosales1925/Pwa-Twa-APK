@@ -14,6 +14,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Instalar Android SDK build-tools
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0"
+
       - name: Build Release APK
         run: |
           chmod +x gradlew
