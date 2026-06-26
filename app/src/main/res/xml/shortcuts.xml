@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="open_app"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/app_name"
+        android:shortcutLongLabel="@string/app_name">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="cl.patiperros.twa"
+            android:targetClass="cl.patiperros.twa.LauncherActivity"
+            android:data="https://app.patiperros-talca.cl/app?source=pwa-app&amp;mode=standalone" />
+    </shortcut>
+</shortcuts>

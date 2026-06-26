@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ===== Permisos requeridos ===== -->
+
+    <!-- Internet (necesario para TWA / WebView) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Ubicación: foreground -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Ubicación: background (paseo con pantalla bloqueada) -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- Foreground service genérico + tipo "location" (Android 14+) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
+    <!-- Notificación persistente (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Wake lock para mantener GPS activo en background -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Permite reiniciar el servicio si el sistema lo mata -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- ===== Hardware ===== -->
+    <uses-feature
+        android:name="android.hardware.location.gps"
+        android:required="false" />
+
+    <application
+        android:name=".PatiperrosApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="${launcherName}"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="false"
+        android:theme="@style/Theme.Patiperros"
+        tools:targetApi="34">
+
+        <!-- ===== TWA Asset Statements (Digital Asset Links) =====
+             Apunta al sitio de la PWA. El sitio debe servir
+             /.well-known/assetlinks.json con la huella SHA-256
+             de la firma de esta app para que la URL bar sea ocultada. -->
+        <meta-data
+            android:name="asset_statements"
+            android:value="${assetStatements}" />
+
+        <!-- ===== Activity launcher TWA ===== -->
+        <activity
+            android:name=".LauncherActivity"
+            android:exported="true"
+            android:label="${launcherName}"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Patiperros.Launcher">
+
+            <!-- Configuración del splash screen del TWA -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.DEFAULT_URL"
+                android:value="${defaultUrl}" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
+                android:resource="@color/colorPrimary" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
+                android:resource="@color/colorPrimaryDark" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
+                android:resource="@color/colorPrimary" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
+                android:resource="@color/colorPrimaryDark" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
+                android:resource="@drawable/splash" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
+                android:resource="@color/splashBackground" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
+                android:value="300" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.FILE_PROVIDER_AUTHORITY"
+                android:value="${applicationId}.fileprovider" />
+
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
+                android:value="customtabs" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.DISPLAY_MODE"
+                android:value="immersive" />
+
+            <meta-data
+                android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
+                android:value="portrait" />
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Captura de URLs https://app.patiperros-talca.cl -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                      android:host="${hostName}" />
+            </intent-filter>
+        </activity>
+
+        <!-- ===== Activity fallback BridgeWebViewActivity =====
+             Se usa cuando no hay proveedor TWA disponible (Chrome/Custom Tabs).
+             Carga la PWA dentro de un WebView con AndroidBridge inyectado. -->
+        <activity
+            android:name=".BridgeWebViewActivity"
+            android:exported="false"
+            android:label="${launcherName}"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Patiperros" />
+
+        <!-- ===== Foreground Service de ubicación =====
+             Tipo "location" obligatorio en Android 14 (API 34) cuando se
+             usa FOREGROUND_SERVICE_LOCATION. -->
+        <service
+            android:name=".LocationForegroundService"
+            android:exported="false"
+            android:enabled="true"
+            android:foregroundServiceType="location"
+            android:stopWithTask="false" />
+
+        <!-- ===== TwaPostMessageService — canal JS→Kotlin en la ruta TWA/Chrome =====
+             Permite que el JavaScript de la PWA cargada en Chrome envíe mensajes
+             al proceso nativo vía la API de Custom Tabs postMessage.
+             Esto resuelve el BUG CRÍTICO #2: el ForegroundService no arrancaba
+             en la ruta TWA porque window.AndroidBridge no existe en Chrome. -->
+        <service
+            android:name=".TwaPostMessageService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.support.customtabs.action.CustomTabsService" />
+            </intent-filter>
+        </service>
+
+        <!-- ===== BootReceiver — reinicia el servicio GPS tras reboot del dispositivo =====
+             Si había un paseo activo cuando el dispositivo se apagó o reinició,
+             este receiver lo detecta desde SharedPreferences y relanza el servicio. -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="false"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
+        <!-- ===== Provider para descargas iniciadas por la TWA ===== -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
+
+    </application>
+</manifest>

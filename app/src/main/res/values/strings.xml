@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Patiperros</string>
+    <string name="walk_notif_channel_id">walk_active_channel</string>
+    <string name="walk_notif_channel_name">Paseo activo</string>
+    <string name="walk_notif_channel_desc">Notificación persistente mientras hay un paseo en curso con GPS activo</string>
+    <string name="walk_notif_title">Paseo en curso</string>
+    <string name="walk_notif_text">GPS activo · transmitiendo ubicación</string>
+    <string name="walk_notif_ticker">Patiperros · paseo activo</string>
+</resources>

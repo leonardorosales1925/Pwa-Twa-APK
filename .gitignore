@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Keystore (do NOT commit production keystore in real repos)
+# Conservado para entrega como pidió el ejercicio:
+# *.jks
+# keystore.properties
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

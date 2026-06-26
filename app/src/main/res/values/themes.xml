@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Patiperros" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/splashBackground</item>
+    </style>
+
+    <!-- Theme dedicado al launcher TWA: sin barra de acción y transparente
+         para evitar parpadeos antes de que se renderice el splash de TWA. -->
+    <style name="Theme.Patiperros.Launcher" parent="Theme.Patiperros">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+    </style>
+</resources>

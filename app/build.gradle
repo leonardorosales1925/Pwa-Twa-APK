@@ -1,0 +1,104 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// Cargar propiedades del keystore si existen (para builds release firmados)
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    namespace 'cl.patiperros.twa'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "cl.patiperros.twa"
+        minSdk 26
+        targetSdk 34
+        versionCode 2
+        versionName "1.0.0-v77"
+
+        // Host de la PWA (definido como manifestPlaceholders para inyectarlo en
+        // el AndroidManifest.xml — ver meta-data de TWA).
+        manifestPlaceholders = [
+            hostName            : "app.patiperros-talca.cl",
+            defaultUrl          : "https://app.patiperros-talca.cl/app?source=pwa-app&mode=standalone",
+            launcherName        : "Patiperros",
+            assetStatements     : '[{ "relation": ["delegate_permission/common.handle_all_urls"], "target": { "namespace": "web", "site": "https://app.patiperros-talca.cl" } }]'
+        ]
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        // Firma release usando keystore.properties (si está presente).
+        if (keystorePropertiesFile.exists()) {
+            release {
+                storeFile     rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias      keystoreProperties['keyAlias']
+                keyPassword   keystoreProperties['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            // Debug usa la firma debug por defecto generada por Android.
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    packagingOptions {
+        resources {
+            excludes += [
+                'META-INF/AL2.0',
+                'META-INF/LGPL2.1',
+                'META-INF/DEPENDENCIES',
+                'META-INF/LICENSE',
+                'META-INF/LICENSE.txt',
+                'META-INF/NOTICE',
+                'META-INF/NOTICE.txt'
+            ]
+        }
+    }
+}
+
+dependencies {
+    // TWA / Custom Tabs
+    implementation 'androidx.browser:browser:1.7.0'
+
+    // AndroidX core
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+
+    // Foreground service de ubicación
+    implementation 'com.google.android.gms:play-services-location:21.1.0'
+
+    // Kotlin coroutines (para llamadas no bloqueantes desde el JS Bridge)
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+}
