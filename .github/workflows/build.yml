@@ -15,14 +15,14 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Instalar build-tools
-        run: sdkmanager "build-tools;34.0.0"
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Build Release APK
         run: |
           chmod +x gradlew
+          export ANDROID_HOME=$ANDROID_SDK_ROOT
           ./gradlew assembleRelease --no-daemon
 
       - name: Upload APK
