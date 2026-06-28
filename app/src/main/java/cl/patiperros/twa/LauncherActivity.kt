@@ -23,6 +23,7 @@ class LauncherActivity : AppCompatActivity() {
 
     private var customTabsClient: CustomTabsClient? = null
     private var pendingUrl: String? = null
+    private var channelReady = false
 
     private val serviceConnection = object : CustomTabsServiceConnection() {
         override fun onCustomTabsServiceConnected(name: ComponentName, client: CustomTabsClient) {
@@ -70,20 +71,20 @@ class LauncherActivity : AppCompatActivity() {
             val callback = object : CustomTabsCallback() {
                 override fun onMessageChannelReady(extras: Bundle?) {
                     activeSession?.postMessage("TWA_CHANNEL_READY", null)
+                    channelReady = true
+                    finish()
                 }
             }
 
             val session = client.newSession(callback)
             if (session == null) {
                 fallbackToWebView(url)
+                finish()
                 return
             }
             activeSession = session
             session.mayLaunchUrl(Uri.parse(url), null, null)
 
-            // Habilita el canal PostMessage entre la PWA (JS) y el TwaPostMessageService (Kotlin).
-            // Sin esta llamada Chrome nunca abre el canal y los mensajes WALK_STARTED / WALK_ENDED
-            // enviados desde app.js nunca llegan al servicio nativo.
             session.requestPostMessageChannel(
                 Uri.parse("https://app.patiperros-talca.cl")
             )
@@ -92,9 +93,13 @@ class LauncherActivity : AppCompatActivity() {
                 .build(session)
 
             startActivity(twaIntent.intent)
+
+            // Timeout de seguridad: si onMessageChannelReady no llega en 6s, finish de todas formas
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                if (!channelReady) finish()
+            }, 6000)
         } catch (t: Throwable) {
             fallbackToWebView(url)
-        } finally {
             finish()
         }
     }

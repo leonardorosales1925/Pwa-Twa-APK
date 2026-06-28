@@ -90,6 +90,14 @@ class AndroidBridge(private val context: Context) {
         }
     }
 
+    @JavascriptInterface
+    fun saveAuthToken(token: String) {
+        if (token.isBlank()) return
+        context.getSharedPreferences(LocationForegroundService.PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(LocationForegroundService.PREF_AUTH_TOKEN, token).apply()
+        Log.i(TAG, "Token guardado para WalkPollingService")
+    }
+
     private fun stopLocationService() {
         val intent = Intent(context, LocationForegroundService::class.java).apply {
             action = LocationForegroundService.ACTION_WALK_ENDED

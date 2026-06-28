@@ -322,8 +322,8 @@ class LocationForegroundService : Service() {
             val body = buildString {
                 append("{")
                 if (!walkId.isNullOrBlank()) append("\"walk_id\":\"$walkId\",")
-                append("\"lat\":$lat,")
-                append("\"lng\":$lng,")
+                append("\"latitude\":$lat,")
+                append("\"longitude\":$lng,")
                 append("\"accuracy\":$acc,")
                 append("\"timestamp\":$ts,")
                 append("\"source\":\"native_service\"")

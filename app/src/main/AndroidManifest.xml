@@ -127,8 +127,6 @@
                 <data android:scheme="https"
                       android:host="${hostName}" />
             </intent-filter>
-
-            <!-- Intent filter para URL scheme patiperros:// (mecanismo respaldo GPS) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -157,6 +155,7 @@
             android:enabled="true"
             android:foregroundServiceType="location"
             android:stopWithTask="false" />
+
 
         <!-- ===== TwaPostMessageService — canal JS→Kotlin en la ruta TWA/Chrome =====
              Permite que el JavaScript de la PWA cargada en Chrome envíe mensajes
