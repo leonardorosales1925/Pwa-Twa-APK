@@ -79,19 +79,16 @@ class BridgeWebViewActivity : AppCompatActivity() {
             )
 
             webViewClient = object : WebViewClient() {
-                override fun shouldOverrideUrlLoading(view: android.webkit.WebView?, request: android.webkit.WebResourceRequest?): Boolean {
-                    val url = request?.url?.toString() ?: return false
-                    if (url.startsWith("patiperros://")) {
-                        handlePatiperrosScheme(url)
-                        return true
-                    }
-                    return false
-                }
                 override fun shouldOverrideUrlLoading(
                     view: WebView?,
                     request: android.webkit.WebResourceRequest?
                 ): Boolean {
                     val url = request?.url?.toString() ?: return false
+                    // Interceptar URL scheme patiperros:// (mecanismo respaldo GPS).
+                    if (url.startsWith("patiperros://")) {
+                        handlePatiperrosScheme(url)
+                        return true
+                    }
                     // Mantener navegación dentro del host de la PWA.
                     return !url.startsWith("https://app.patiperros-talca.cl")
                 }
