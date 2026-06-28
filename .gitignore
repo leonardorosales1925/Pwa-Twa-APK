@@ -1,24 +1,25 @@
-# Gradle
+# Archivos locales Android
+local.properties
+*.iml
 .gradle/
 build/
-out/
-
-# Android Studio / IntelliJ
 .idea/
-*.iml
-local.properties
-captures/
-.externalNativeBuild/
-.cxx/
 
-# Keystore (do NOT commit production keystore in real repos)
-# Conservado para entrega como pidió el ejercicio:
-# *.jks
-# keystore.properties
+# APKs y archivos de build
+*.apk
+*.aab
+*.ap_
+*.class
+*.dex
+*.jar
+*.war
 
-# Logs
-*.log
-
-# OS
+# Sistema
 .DS_Store
-Thumbs.db
+*.swp
+*~
+
+# Wrangler y entorno
+.wrangler/
+.env
+.dev.vars

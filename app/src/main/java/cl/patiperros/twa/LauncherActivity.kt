@@ -40,6 +40,9 @@ class LauncherActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Iniciar polling como mecanismo de respaldo para detectar paseos activos
+        WalkPollingService.start(applicationContext)
+
         val url = intent?.dataString?.takeIf {
             it.startsWith("https://app.patiperros-talca.cl")
         } ?: PWA_URL

@@ -79,6 +79,14 @@ class BridgeWebViewActivity : AppCompatActivity() {
             )
 
             webViewClient = object : WebViewClient() {
+                override fun shouldOverrideUrlLoading(view: android.webkit.WebView?, request: android.webkit.WebResourceRequest?): Boolean {
+                    val url = request?.url?.toString() ?: return false
+                    if (url.startsWith("patiperros://")) {
+                        handlePatiperrosScheme(url)
+                        return true
+                    }
+                    return false
+                }
                 override fun shouldOverrideUrlLoading(
                     view: WebView?,
                     request: android.webkit.WebResourceRequest?
@@ -174,6 +182,24 @@ class BridgeWebViewActivity : AppCompatActivity() {
             webView.goBack()
         } else {
             super.onBackPressed()
+        }
+    }
+
+    private fun handlePatiperrosScheme(url: String) {
+        android.util.Log.i("BridgeWebView", "URL scheme interceptado: $url")
+        val uri = android.net.Uri.parse(url)
+        when (uri.host) {
+            "walk-started" -> {
+                val token = uri.getQueryParameter("token") ?: ""
+                val walkId = uri.getQueryParameter("walk_id") ?: ""
+                TwaPostMessageService.handleWalkMessage(
+                    applicationContext,
+                    "WALK_STARTED:$token:$walkId"
+                )
+            }
+            "walk-ended" -> {
+                TwaPostMessageService.handleWalkMessage(applicationContext, "WALK_ENDED")
+            }
         }
     }
 
