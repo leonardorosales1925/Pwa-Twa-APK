@@ -2,6 +2,7 @@ package cl.patiperros.twa
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -41,6 +42,39 @@ class LauncherActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Interceptar URL scheme patiperros://walk-started y patiperros://walk-ended
+        // La PWA los usa como respaldo cuando PostMessage no está disponible.
+        val intentData = intent?.dataString ?: ""
+        if (intentData.startsWith("patiperros://walk-started")) {
+            try {
+                val uri = Uri.parse(intentData)
+                val token  = uri.getQueryParameter("token")
+                val walkId = uri.getQueryParameter("walk_id")
+                if (!token.isNullOrBlank()) {
+                    getSharedPreferences(LocationForegroundService.PREFS_NAME, Context.MODE_PRIVATE)
+                        .edit()
+                        .putString(LocationForegroundService.PREF_AUTH_TOKEN, token)
+                        .putString(LocationForegroundService.PREF_WALK_ID, walkId)
+                        .putBoolean(LocationForegroundService.PREF_WALK_ACTIVE, true)
+                        .apply()
+                    TwaPostMessageService.handleWalkMessage(
+                        applicationContext,
+                        "WALK_STARTED:$token:${walkId ?: ""}"
+                    )
+                }
+            } catch (t: Throwable) {
+                android.util.Log.w("LauncherActivity", "URL scheme error: ${t.message}")
+            }
+            finish()
+            return
+        }
+
+        if (intentData.startsWith("patiperros://walk-ended")) {
+            TwaPostMessageService.handleWalkMessage(applicationContext, "WALK_ENDED")
+            finish()
+            return
+        }
+
         // Iniciar polling como mecanismo de respaldo para detectar paseos activos
         WalkPollingService.start(applicationContext)
 
@@ -63,10 +97,6 @@ class LauncherActivity : AppCompatActivity() {
 
     private fun launchWithClient(url: String, client: CustomTabsClient) {
         try {
-            // Callback que escucha el aviso de Chrome "el canal PostMessage ya está
-            // listo" (onMessageChannelReady) y lo reenvía a la PWA con el mensaje
-            // TWA_CHANNEL_READY. Sin este aviso, la PWA nunca sabe que puede empezar
-            // a enviar WALK_STARTED / WALK_ENDED y el envío de ubicación nunca arranca.
             var activeSession: CustomTabsSession? = null
             val callback = object : CustomTabsCallback() {
                 override fun onMessageChannelReady(extras: Bundle?) {
@@ -94,7 +124,6 @@ class LauncherActivity : AppCompatActivity() {
 
             startActivity(twaIntent.intent)
 
-            // Timeout de seguridad: si onMessageChannelReady no llega en 6s, finish de todas formas
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                 if (!channelReady) finish()
             }, 6000)
@@ -140,9 +169,5 @@ class LauncherActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // No se desvincula el servicio aquí: si se hace inmediatamente después de
-        // finish(), se corta la conexión con Chrome antes de que el aviso de canal
-        // listo (onMessageChannelReady) llegue a la app, y la PWA nunca recibe
-        // TWA_CHANNEL_READY. El sistema libera la conexión junto con el proceso.
     }
 }
