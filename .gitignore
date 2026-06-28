@@ -1,25 +1,31 @@
-# Archivos locales Android
-local.properties
-*.iml
-.gradle/
-build/
-.idea/
-
-# APKs y archivos de build
+# Android build outputs
 *.apk
 *.aab
 *.ap_
-*.class
-*.dex
-*.jar
-*.war
 
-# Sistema
+# Android local properties (no incluir rutas locales del SDK)
+local.properties
+
+# Gradle build files
+.gradle/
+build/
+app/build/
+
+# IntelliJ / Android Studio
+*.iml
+.idea/
+*.classpath
+*.project
+.settings/
+
+# OS files
 .DS_Store
-*.swp
-*~
+Thumbs.db
 
-# Wrangler y entorno
-.wrangler/
-.env
-.dev.vars
+# Log files
+*.log
+
+# Keystore (IMPORTANTE: no commitear keystores reales en producción)
+# Se mantiene en este repo para CI/CD con GitHub Actions
+# *.jks
+# *.keystore
